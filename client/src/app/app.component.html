@@ -1,0 +1,24 @@
+<form [formGroup]="form">
+  <div>
+    Name:
+    <input type="text" formControlName="name">
+  </div>
+  <div>
+    <button type="button" (click)="toggleConnection()">{{this.text}}</button>
+  </div>
+  <div>
+    Message:
+    <input type="text" formControlName="message">
+  </div>
+  <div>
+    <button type="button" (click)="sendMessage()">Send</button>
+  </div>
+  <p>Messages</p>
+  <div *ngFor="let chat of messages">
+    <p>
+      From: {{chat.from}}
+      <code>{{chat.message}}</code>
+      <span>{{chat.ts}}</span>
+    </p>
+  </div>
+</form>
