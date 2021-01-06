@@ -15,6 +15,12 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 
+const broadcastMsg = (chat) => {
+    for (let i in PARTICIPANTS) {
+        PARTICIPANTS[i].send(chat)
+    }
+}
+
 // can do this if got multiple chat rooms, express logic applies
 // app.ws('/chat/:multiplechatrooms', (ws, req) => {
 app.ws('/chat', (ws, req) => {
@@ -22,16 +28,13 @@ app.ws('/chat', (ws, req) => {
     console.info(`New websocket connection: ${name}`)
     PARTICIPANTS[name] = ws
     ws.participantName = name
-    ws.on('onopen', (data) => {
-        const chat = JSON.stringify({
-            from: 'Admin',
-            message: `${name} has joined the room.`,
-            ts: (new Date().toString())
-        })
-        // broadcast to everyone in the room
-        for (let i in PARTICIPANTS)
-            PARTICIPANTS[i].send(chat)
+    const chat = JSON.stringify({
+        from: 'Admin',
+        message: `${name} has joined the room.`,
+        ts: (new Date().toString())
     })
+    // broadcast to everyone in the room
+    broadcastMsg(chat)
         
     ws.on('message', (data) => {
         console.info(`Message incoming: ${data}`)
@@ -41,8 +44,7 @@ app.ws('/chat', (ws, req) => {
             ts: (new Date().toString())
         })
         // broadcast to everyone in the room
-        for (let i in PARTICIPANTS)
-            PARTICIPANTS[i].send(chat)
+        broadcastMsg(chat)
     })
 
     ws.on('close', () => {
@@ -51,6 +53,13 @@ app.ws('/chat', (ws, req) => {
         PARTICIPANTS[name].close()
         // remove ourself from the room
         delete PARTICIPANTS[name]
+
+        const chat = JSON.stringify({
+            from: 'Admin',
+            message: `${name} has left the room.`,
+            ts: (new Date().toString())
+        })
+        broadcastMsg(chat)
     })
 })
 
